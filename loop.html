@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LoopGPT</title>
+    <link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Orbitron&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #000;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .info {
+            font-size: 0.85rem;
+            line-height: 1.8;
+            opacity: 0.8;
+            position: absolute;
+            top: 30px;
+            right: 0;
+            width: 20%;
+            text-align: left;
+            padding: 1rem;
+            background-color: rgba(0, 0, 0, 0.9);
+        }
+        input, textarea, button, select {
+            width: 100%;
+            font-size: 1rem;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            box-sizing: border-box;
+            background-color: #00000054;
+        }
+        input, textarea, select {
+            background-color: #00000054;
+            border: none;
+            color: #fff;
+        }
+        button {
+            background-color: #555;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #1a1a1a;
+        }
+        #results { margin-top: 1rem; }
+        .result-container {
+            margin-bottom: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        #main-container {
+            width: 80%;
+            max-width: 800px;
+        }
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            margin: 0;
+            position: absolute;
+            top: 10px;
+            left: 20px;
+        }
+   
+      
+    </style>
+</head>
+<body>
+    <div id="main-container">
+        <h1>LoopGPT</h1>
+        <label for="api_key">OpenAI API Key: </label>
+        <input type="password" id="api_key" placeholder="Enter your OpenAI API key here">
+        <label for="model">Model: </label>
+        <select id="model">
+          <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+          <option value="gpt-4">gpt-4</option>
+        </select>
+        <label for="main_idea">Main Idea: </label>
+        <textarea id="main_idea" rows="3" placeholder="Enter your main idea or topic here"></textarea>
+        <label for="ideas">Initial Ideas: </label>
+        <textarea id="ideas" rows="4" placeholder="Enter your initial ideas here"></textarea>
+        <label for="custom_prompt">Custom Command: </label>
+        <input type="text" id="custom_prompt" value="Create 10 unique, cool, detailed ideas for" placeholder="Enter your custom command here">
+        <label for="loop_count">Number of Loops: </label>
+        <input type="number" id="loop_count" value="3">
+        <button id="start">Start</button>
+        <div id="results"></div>
+    </div>
+    <div class="info">
+        <p>This Idea Assistant will help you generate creative ideas by using two AI models that work together. Here's how it works:</p>
+        <ol>
+            <li>Enter your OpenAI API key in the "OpenAI API Key" box.</li>
+            <li>Select the AI model you want to use from the "Model" dropdown.</li>
+            <li>Enter a main idea or topic in the "Main Idea" box.</li>
+            <li>Enter some initial ideas related to the main idea in the "Initial Ideas" box. These ideas will be used by the AI to create new ideas.</li>
+            <li>Customize the AI command in the "Custom Command" box. This command instructs the AI on what to do with the ideas. For example, you can ask the AI to create 10 unique ideas or to elaborate on a specific idea.</li>
+            <li>Set the number of loops you want the AI models to iterate through in the "Number of Loops" box. More loops will result in more evolved and diverse ideas.</li>
+            <li>Click the "Start" button to begin the idea generation process.</li>
+            <li>The AI models will take turns generating ideas based on the input and display the output in separate text boxes.</li>
+            <li>Review the generated ideas and use them in your project or as inspiration for new ideas.</li>
+        </ol>
+    </div>
+    <script>
+        const API_URL = 'https://api.openai.com/v1/chat/completions';
+
+        const startButton = document.getElementById('start');
+        const apiKeyInput = document.getElementById('api_key');
+        const modelSelect = document.getElementById('model');
+        const mainIdeaInput = document.getElementById('main_idea');
+        const ideasInput = document.getElementById('ideas');
+        const customPromptInput = document.getElementById('custom_prompt');
+        const loopCountInput = document.getElementById('loop_count');
+        const resultsDiv = document.getElementById('results');
+
+        startButton.addEventListener('click', async () => {
+            const apiKey = apiKeyInput.value;
+            const model = modelSelect.value;
+            const mainIdea = mainIdeaInput.value;
+            const ideas = ideasInput.value;
+            const customPrompt = customPromptInput.value;
+            const loopCount = loopCountInput.value;
+
+            if (!apiKey || !mainIdea || !ideas || !loopCount || !customPrompt) {
+                alert('Please fill in the API key, main idea, initial ideas, number of loops, and custom command.');
+                return;
+            }
+
+            resultsDiv.innerHTML = '';
+
+            let userInput = ideas;
+
+            startButton.disabled = true;
+            startButton.textContent = 'Processing';
+
+            for (let i = 0; i < loopCount; i++) {
+                const prompt = `${mainIdea}. ${customPrompt} ${userInput}`;
+                const result = await callChatGPT(prompt, apiKey, model);
+
+                userInput += '\n' + result;
+
+                const resultContainer = document.createElement('div');
+                resultContainer.className = 'result-container';
+
+                const resultLabel = document.createElement('strong');
+                resultLabel.textContent = `Loop ${i + 1} Result:`;
+                resultContainer.appendChild(resultLabel);
+
+                const resultTextbox = document.createElement('textarea');
+                resultTextbox.value = result;
+                resultContainer.appendChild(resultTextbox);
+
+                resultsDiv.appendChild(resultContainer);
+            }
+
+            startButton.disabled = false;
+            startButton.textContent = 'Start';
+        });
+
+        async function callChatGPT(prompt, apiKey, model) {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: model,
+                    messages: [{ role: 'system', content: 'Start idea generation.' }, { role: 'user', content: prompt }],
+                }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                const result = data.choices[0].message.content;
+                return result;
+            } else {
+                alert('An error occurred, please try again.');
+                throw new Error('OpenAI API call failed');
+            }
+        }
+    </script>
+</body>
+</html>
