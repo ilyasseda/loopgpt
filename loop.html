@@ -18,28 +18,15 @@
             height: 100vh;
             margin: 0;
         }
-        .info {
-            font-size: 0.85rem;
-            line-height: 1.8;
-            opacity: 0.8;
-            position: absolute;
-            top: 30px;
-            right: 0;
-            width: 20%;
-            text-align: left;
-            padding: 1rem;
-            background-color: rgba(0, 0, 0, 0.9);
-        }
         input, textarea, button, select {
             width: 100%;
             font-size: 1rem;
             padding: 0.5rem;
             margin-bottom: 1rem;
             box-sizing: border-box;
-            background-color: #00000054;
         }
         input, textarea, select {
-            background-color: #00000054;
+            background-color: #333;
             border: none;
             color: #fff;
         }
@@ -50,7 +37,7 @@
             cursor: pointer;
         }
         button:hover {
-            background-color: #1a1a1a;
+            background-color: #666;
         }
         #results { margin-top: 1rem; }
         .result-container {
@@ -71,8 +58,31 @@
             top: 10px;
             left: 20px;
         }
-   
-      
+        .info {
+            font-size: 0.7rem;
+            line-height: 1.4;
+            opacity: 0.8;
+            position: absolute;
+            top: 10px;
+            right: 0;
+            width: 30%;
+            text-align: left;
+            padding: 1rem;
+            background-color: rgba(0, 0, 0, 0.9);
+        }
+        @media screen and (max-width: 768px) {
+          .info {
+            font-size: 0.6rem;
+            width: 100%;
+            position: static;
+            margin-top: 1rem;
+            padding: 0.5rem;
+            text-align: center;
+          }
+          h1 {
+            font-size: 2rem;
+          }
+        }
     </style>
 </head>
 <body>
@@ -179,8 +189,7 @@
                 }),
             });
 
-            if (response.ok) {
-                const data = await response.json();
+            if (response.ok) {const data = await response.json();
                 const result = data.choices[0].message.content;
                 return result;
             } else {
